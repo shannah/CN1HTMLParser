@@ -1,0 +1,70 @@
+= CN1HTMLParser
+
+An HTML parser for https://www.codenameone.com[Codename One]
+
+
+== License
+
+Apache 2.0
+
+== Installation
+
+Install through Codename One settings.  
+
+If you haven’t activated any cn1libs before in your Codename One projects, see https://www.codenameone.com/blog/automatically-install-update-distribute-cn1libs-extensions.html[this tutorial] which explains the process.
+
+== Usage
+
+[source,java]
+----
+HTMLParser parser = new HTMLParser();
+
+// Parse HTML string into an Element
+// Note: parse() is async, but calling get() will block until the result is available.
+Element root = parser.parse(htmlString).get();
+
+// Async version:
+// parser.parse(htmlString).ready(root->{...});
+
+// Now just showing some typical stuff you might do with the results
+// using existing CN1 tools since the resulting Element is
+// the same as returned by XMLParser
+Result r = Result.fromContent(root);
+// Update images
+List<Element> images = r.getAsArray("//img");
+int index = 0;
+List<String> toLoad = new ArrayList<>();
+if (images != null) {
+	for (Element img : images) {
+		String src = img.getAttribute("src");
+		if (src.startsWith("http://*/") || (!src.startsWith("http://") && !src.startsWith("data:") && !src.startsWith("https"))) {
+			img.setAttribute("id", "nt-image-"+index);
+			toLoad.add(src);
+			img.setAttribute("src", "");
+			index++;
+		}
+	}
+}
+
+// Print out document as well-formed XML.
+XMLWriter writer = new XMLWriter(true);
+String pageContent = writer.toXML(root);
+----
+
+== How it Works
+
+This library uses an off-screen BrowserComponent to parse the HTML, then serialize it to XML.  It 
+then passes the XML to the Codename One XMLParser to parse.
+
+== Building from Source
+
+[source,bash]
+----
+git clone https://github.com/shannah/CN1HTMLParser
+cd CN1HTMLParser
+./antw jar
+----
+
+== Credits
+
+. Created by https://sjhannah.com/[Steve Hannah]
